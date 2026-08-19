@@ -1,56 +1,105 @@
 # ==============================================================================
-# File: install.ps1
-# Path: C:\Windows\Setup\Scripts\install.ps1
-# Description: Post-OSD setup script triggered by SetupComplete.cmd
+# File: install.ps1 (With Dual Progress Bars: Overall + Component Level)
 # ==============================================================================
 
-$Host.UI.RawUI.WindowTitle = "*** System Initialization in Progress - Do Not Turn Off Computer ***"
+$Host.UI.RawUI.WindowTitle = "*** System Initialization in Progress - Do Not Turn Off ***"
 Clear-Host
 
-Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "   Executing SetupComplete Post-Install Tasks   " -ForegroundColor Cyan
-Write-Host "===============================================" -ForegroundColor Cyan
+Write-Host "=========================================================" -ForegroundColor Cyan
+Write-Host "   Executing SetupComplete Post-Install Tasks            " -ForegroundColor Cyan
+Write-Host "=========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# --- Step 1: Enable .NET Framework 3.5 ---
-Write-Progress -Activity "Windows System Initialization" -Status "Step 1/3: Enabling .NET Framework 3.5..." -PercentComplete 20
-Write-Host "[1/3] Installing .NET Framework 3.5..." -ForegroundColor Yellow
+$TotalSteps = 3
+
+# ------------------------------------------------------------------------------
+# STEP 1/3: .NET Framework 3.5
+# ------------------------------------------------------------------------------
+$CurrentStep = 1
+$OverallPercent = [int](($CurrentStep - 1) / $TotalSteps * 100)
+
+Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Enabling .NET Framework 3.5" -PercentComplete $OverallPercent
+Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Running DISM Online Enable-Feature..." -PercentComplete 10
+
+Write-Host "[$CurrentStep/$TotalSteps] Installing .NET Framework 3.5..." -ForegroundColor Yellow
 dism /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart | Out-Null
-Write-Host " -> .NET Framework 3.5 installation completed!" -ForegroundColor Green
+
+Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Completed .NET 3.5!" -PercentComplete 100
+Write-Host " -> .NET Framework 3.5 installed successfully!" -ForegroundColor Green
 Write-Host ""
 
-# --- Step 2: Install Language Packs ---
-Write-Progress -Activity "Windows System Initialization" -Status "Step 2/3: Downloading and installing language packs (may take a while)..." -PercentComplete 50
-Write-Host "[2/3] Installing language packs (en-US, zh-TW, zh-CN, ja-JP)..." -ForegroundColor Yellow
+# ------------------------------------------------------------------------------
+# STEP 2/3: Language Packs
+# ------------------------------------------------------------------------------
+$CurrentStep = 2
+$Langs = @('zh-TW', 'zh-CN', 'ja-JP')
+Write-Host "[$CurrentStep/$TotalSteps] Installing Language Packs ($($Langs.Count) total)..." -ForegroundColor Yellow
 
-$Langs = @('en-US', 'zh-TW', 'zh-CN', 'ja-JP')
-$count = 0
+$LangIndex = 0
 foreach ($Lang in $Langs) {
-    $count++
-    $percent = [int](50 + ($count / $Langs.Count * 30))
-    Write-Progress -Activity "Windows System Initialization" -Status "Step 2/3: Downloading $Lang ($count/$($Langs.Count))..." -PercentComplete $percent
-    Write-Host "  [+] Processing language pack: $Lang ..." -ForegroundColor Gray
+    $LangIndex++
+    
+    $SubPercent = [int](($LangIndex - 1) / $Langs.Count * 100)
+   
+    $OverallPercent = [int](33 + (($LangIndex - 1) / $Langs.Count * 33))
+
+    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Installing Languages ($LangIndex/$($Langs.Count))" -PercentComplete $OverallPercent
+    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Downloading and applying $Lang..." -PercentComplete $SubPercent
+
+    Write-Host "  [+] [$LangIndex/$($Langs.Count)] Processing language pack: $Lang..." -ForegroundColor Gray
     Install-Language -Language $Lang -CopyToSettings
+
+    $SubPercentCompleted = [int]($LangIndex / $Langs.Count * 100)
+    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Completed $Lang!" -PercentComplete $SubPercentCompleted
 }
+
 Write-Host " -> All language packs installed successfully!" -ForegroundColor Green
 Write-Host ""
 
-# --- Step 3: Install Applications ---
-Write-Progress -Activity "Windows System Initialization" -Status "Step 3/3: Installing Google Chrome & 7-Zip..." -PercentComplete 85
-Write-Host "[3/3] Installing applications..." -ForegroundColor Yellow
+# ------------------------------------------------------------------------------
+# STEP 3/3: Applications (Winget)
+# ------------------------------------------------------------------------------
+$CurrentStep = 3
+$Apps = @(
+    @{ Name = "Google Chrome"; Id = "Google.Chrome" },
+    @{ Name = "7-Zip";         Id = "7zip.7zip" }
+)
 
-Write-Host "  [+] Installing Google Chrome..." -ForegroundColor Gray
-winget install --id Google.Chrome -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+Write-Host "[$CurrentStep/$TotalSteps] Installing Applications ($($Apps.Count) total)..." -ForegroundColor Yellow
 
-Write-Host "  [+] Installing 7-Zip..." -ForegroundColor Gray
-winget install --id 7zip.7zip -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+$AppIndex = 0
+foreach ($App in $Apps) {
+    $AppIndex++
+    
+  
+    $SubPercent = [int](($AppIndex - 1) / $Apps.Count * 100)
+ 
+    $OverallPercent = [int](66 + (($AppIndex - 1) / $Apps.Count * 33))
 
-Write-Host " -> Application installation completed!" -ForegroundColor Green
+    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Installing Apps ($AppIndex/$($Apps.Count))" -PercentComplete $OverallPercent
+    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $($App.Name)" -Status "Installing $($App.Name)..." -PercentComplete $SubPercent
+
+    Write-Host "  [+] [$AppIndex/$($Apps.Count)] Installing $($App.Name)..." -ForegroundColor Gray
+    winget install --id $App.Id -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
+
+    $SubPercentCompleted = [int]($AppIndex / $Apps.Count * 100)
+    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $($App.Name)" -Status "Completed $($App.Name)!" -PercentComplete $SubPercentCompleted
+}
+
+Write-Host " -> All applications installed successfully!" -ForegroundColor Green
 Write-Host ""
 
-# --- Complete ---
-Write-Progress -Activity "Windows System Initialization" -Status "Complete! Preparing to launch Windows..." -PercentComplete 100
-Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "   All tasks completed successfully. Entering OS in 3 seconds...   " -ForegroundColor Cyan
-Write-Host "===============================================" -ForegroundColor Cyan
-Start-Sleep -Seconds 3
+# ------------------------------------------------------------------------------
+# COMPLETE
+# ------------------------------------------------------------------------------
+Write-Progress -Id 1 -Activity "Overall Progress" -Status "Complete!" -PercentComplete 100
+Write-Progress -Id 2 -ParentId 1 -Activity "Current Component" -Status "All Tasks Completed!" -PercentComplete 100
+
+Write-Host "=========================================================" -ForegroundColor Cyan
+Write-Host "   All tasks completed successfully. Entering OS...      " -ForegroundColor Cyan
+Write-Host "=========================================================" -ForegroundColor Cyan
+
+Start-Sleep -Seconds 2
+Write-Progress -Id 2 -Activity " " -Status " " -Completed
+Write-Progress -Id 1 -Activity " " -Status " " -Completed
+Start-Sleep -Seconds 1
