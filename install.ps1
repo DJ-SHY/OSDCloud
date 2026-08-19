@@ -1,5 +1,5 @@
 # ==============================================================================
-# File: install.ps1 (With Dual Progress Bars: Overall + Component Level)
+# File: install.ps1 (Skip en-US Download & Set Default UI to en-US)
 # ==============================================================================
 
 $Host.UI.RawUI.WindowTitle = "*** System Initialization in Progress - Do Not Turn Off ***"
@@ -10,15 +10,15 @@ Write-Host "   Executing SetupComplete Post-Install Tasks            " -Foregrou
 Write-Host "=========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-$TotalSteps = 3
+$TotalSteps = 2
 
 # ------------------------------------------------------------------------------
-# STEP 1/3: .NET Framework 3.5
+# STEP 1/2: .NET Framework 3.5
 # ------------------------------------------------------------------------------
 $CurrentStep = 1
 $OverallPercent = [int](($CurrentStep - 1) / $TotalSteps * 100)
 
-Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Enabling .NET Framework 3.5" -PercentComplete $OverallPercent
+Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Enabling .NET Framework 3.5" -PercentComplete $OverallPercent
 Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Running DISM Online Enable-Feature..." -PercentComplete 10
 
 Write-Host "[$CurrentStep/$TotalSteps] Installing .NET Framework 3.5..." -ForegroundColor Yellow
@@ -29,21 +29,21 @@ Write-Host " -> .NET Framework 3.5 installed successfully!" -ForegroundColor Gre
 Write-Host ""
 
 # ------------------------------------------------------------------------------
-# STEP 2/3: Language Packs
+# STEP 2/2: Additional Language Packs & Set Default UI to en-US
 # ------------------------------------------------------------------------------
 $CurrentStep = 2
+
 $Langs = @('zh-TW', 'zh-CN', 'ja-JP')
-Write-Host "[$CurrentStep/$TotalSteps] Installing Language Packs ($($Langs.Count) total)..." -ForegroundColor Yellow
+Write-Host "[$CurrentStep/$TotalSteps] Installing Language Packs ($($Langs.Count) total) & Setting Default UI..." -ForegroundColor Yellow
 
 $LangIndex = 0
 foreach ($Lang in $Langs) {
     $LangIndex++
     
     $SubPercent = [int](($LangIndex - 1) / $Langs.Count * 100)
-   
-    $OverallPercent = [int](33 + (($LangIndex - 1) / $Langs.Count * 33))
+    $OverallPercent = [int](50 + (($LangIndex - 1) / $Langs.Count * 40))
 
-    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Installing Languages ($LangIndex/$($Langs.Count))" -PercentComplete $OverallPercent
+    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Installing Languages ($LangIndex/$($Langs.Count))" -PercentComplete $OverallPercent
     Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Downloading and applying $Lang..." -PercentComplete $SubPercent
 
     Write-Host "  [+] [$LangIndex/$($Langs.Count)] Processing language pack: $Lang..." -ForegroundColor Gray
@@ -53,40 +53,15 @@ foreach ($Lang in $Langs) {
     Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Completed $Lang!" -PercentComplete $SubPercentCompleted
 }
 
-Write-Host " -> All language packs installed successfully!" -ForegroundColor Green
-Write-Host ""
 
-# ------------------------------------------------------------------------------
-# STEP 3/3: Applications (Winget)
-# ------------------------------------------------------------------------------
-$CurrentStep = 3
-$Apps = @(
-    @{ Name = "Google Chrome"; Id = "Google.Chrome" },
-    @{ Name = "7-Zip";         Id = "7zip.7zip" }
-)
+Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Setting Default UI Language to en-US" -PercentComplete 95
+Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: Default Language" -Status "Setting system UI to en-US..." -PercentComplete 90
 
-Write-Host "[$CurrentStep/$TotalSteps] Installing Applications ($($Apps.Count) total)..." -ForegroundColor Yellow
+Write-Host "  [+] Setting default System UI Language to en-US..." -ForegroundColor Gray
+Set-SystemUILanguage -Language en-US
+Set-WinUILanguageOverride -Language en-US
 
-$AppIndex = 0
-foreach ($App in $Apps) {
-    $AppIndex++
-    
-  
-    $SubPercent = [int](($AppIndex - 1) / $Apps.Count * 100)
- 
-    $OverallPercent = [int](66 + (($AppIndex - 1) / $Apps.Count * 33))
-
-    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $CurrentStep/$TotalSteps: Installing Apps ($AppIndex/$($Apps.Count))" -PercentComplete $OverallPercent
-    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $($App.Name)" -Status "Installing $($App.Name)..." -PercentComplete $SubPercent
-
-    Write-Host "  [+] [$AppIndex/$($Apps.Count)] Installing $($App.Name)..." -ForegroundColor Gray
-    winget install --id $App.Id -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
-
-    $SubPercentCompleted = [int]($AppIndex / $Apps.Count * 100)
-    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $($App.Name)" -Status "Completed $($App.Name)!" -PercentComplete $SubPercentCompleted
-}
-
-Write-Host " -> All applications installed successfully!" -ForegroundColor Green
+Write-Host " -> All language packs installed & Default UI set to en-US successfully!" -ForegroundColor Green
 Write-Host ""
 
 # ------------------------------------------------------------------------------
