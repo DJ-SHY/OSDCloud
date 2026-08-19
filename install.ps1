@@ -47,7 +47,7 @@ foreach ($Lang in $Langs) {
     Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Downloading and applying $Lang..." -PercentComplete $SubPercent
 
     Write-Host "  [+] [$LangIndex/$($Langs.Count)] Processing language pack: $Lang..." -ForegroundColor Gray
-    Install-Language -Language $Lang
+    Install-Language -Language $Lang -CopyToSettings
 }
 
 Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Setting Default UI Language to en-US" -PercentComplete 95
@@ -55,8 +55,8 @@ Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: Default Language"
 
 Write-Host "  [+] Applying CopyToSettings for en-US..." -ForegroundColor Gray
 Install-Language -Language en-US -CopyToSettings
-Set-SystemUILanguage -Language en-US
-Set-WinUILanguageOverride -Language en-US
+# Set-SystemUILanguage -Language en-US
+# Set-WinUILanguageOverride -Language en-US
 
 Write-Host " -> All language packs installed & Default UI locked to en-US successfully!" -ForegroundColor Green
 Write-Host ""
