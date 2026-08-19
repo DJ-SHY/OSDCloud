@@ -1,5 +1,6 @@
 # ==============================================================================
-# File: install.ps1 (Skip en-US Download & Set Default UI to en-US)
+# File: install.ps1 (With Auto-Exit & Auto-Restart)
+# Path: C:\Windows\Setup\Scripts\install.ps1
 # ==============================================================================
 
 $Host.UI.RawUI.WindowTitle = "*** System Initialization in Progress - Do Not Turn Off ***"
@@ -29,10 +30,9 @@ Write-Host " -> .NET Framework 3.5 installed successfully!" -ForegroundColor Gre
 Write-Host ""
 
 # ------------------------------------------------------------------------------
-# STEP 2/2: Additional Language Packs & Set Default UI to en-US
+# STEP 2/2: Additional Language Packs & Lock Default UI to en-US
 # ------------------------------------------------------------------------------
 $CurrentStep = 2
-
 $Langs = @('zh-TW', 'zh-CN', 'ja-JP')
 Write-Host "[$CurrentStep/$TotalSteps] Installing Language Packs ($($Langs.Count) total) & Setting Default UI..." -ForegroundColor Yellow
 
@@ -47,34 +47,34 @@ foreach ($Lang in $Langs) {
     Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Downloading and applying $Lang..." -PercentComplete $SubPercent
 
     Write-Host "  [+] [$LangIndex/$($Langs.Count)] Processing language pack: $Lang..." -ForegroundColor Gray
-    Install-Language -Language $Lang -CopyToSettings
-
-    $SubPercentCompleted = [int]($LangIndex / $Langs.Count * 100)
-    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Completed $Lang!" -PercentComplete $SubPercentCompleted
+    Install-Language -Language $Lang
 }
-
 
 Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Setting Default UI Language to en-US" -PercentComplete 95
 Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: Default Language" -Status "Setting system UI to en-US..." -PercentComplete 90
 
-Write-Host "  [+] Setting default System UI Language to en-US..." -ForegroundColor Gray
+Write-Host "  [+] Applying CopyToSettings for en-US..." -ForegroundColor Gray
+Install-Language -Language en-US -CopyToSettings
 Set-SystemUILanguage -Language en-US
 Set-WinUILanguageOverride -Language en-US
 
-Write-Host " -> All language packs installed & Default UI set to en-US successfully!" -ForegroundColor Green
+Write-Host " -> All language packs installed & Default UI locked to en-US successfully!" -ForegroundColor Green
 Write-Host ""
 
 # ------------------------------------------------------------------------------
-# COMPLETE
+# COMPLETE & AUTO REBOOT
 # ------------------------------------------------------------------------------
 Write-Progress -Id 1 -Activity "Overall Progress" -Status "Complete!" -PercentComplete 100
 Write-Progress -Id 2 -ParentId 1 -Activity "Current Component" -Status "All Tasks Completed!" -PercentComplete 100
 
 Write-Host "=========================================================" -ForegroundColor Cyan
-Write-Host "   All tasks completed successfully. Entering OS...      " -ForegroundColor Cyan
+Write-Host "   All tasks completed. System will reboot in 5 seconds. " -ForegroundColor Cyan
 Write-Host "=========================================================" -ForegroundColor Cyan
 
 Start-Sleep -Seconds 2
 Write-Progress -Id 2 -Activity " " -Status " " -Completed
 Write-Progress -Id 1 -Activity " " -Status " " -Completed
-Start-Sleep -Seconds 1
+
+shutdown.exe /r /t 5 /c "Post-installation setup complete. Rebooting system..."
+
+exit 0
