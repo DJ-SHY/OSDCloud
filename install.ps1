@@ -1,51 +1,56 @@
-# 設定視窗標題
-$Host.UI.RawUI.WindowTitle = "*** 系統初始化設定中 - 請勿關閉電腦 ***"
+# ==============================================================================
+# File: install.ps1
+# Path: C:\Windows\Setup\Scripts\install.ps1
+# Description: Post-OSD setup script triggered by SetupComplete.cmd
+# ==============================================================================
+
+$Host.UI.RawUI.WindowTitle = "*** System Initialization in Progress - Do Not Turn Off Computer ***"
 Clear-Host
 
 Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "   正在執行 SetupComplete 系統自動預裝程式" -ForegroundColor Cyan
+Write-Host "   Executing SetupComplete Post-Install Tasks   " -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# --- 步驟 1: 安裝 .NET Framework 3.5 ---
-Write-Progress -Activity "Windows 系統初始化" -Status "步驟 1/3: 正在啟用 .NET Framework 3.5..." -PercentComplete 20
-Write-Host "[1/3] 正在安裝 .NET Framework 3.5..." -ForegroundColor Yellow
+# --- Step 1: Enable .NET Framework 3.5 ---
+Write-Progress -Activity "Windows System Initialization" -Status "Step 1/3: Enabling .NET Framework 3.5..." -PercentComplete 20
+Write-Host "[1/3] Installing .NET Framework 3.5..." -ForegroundColor Yellow
 dism /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart | Out-Null
-Write-Host " -> .NET 3.5 安裝完成！" -ForegroundColor Green
+Write-Host " -> .NET Framework 3.5 installation completed!" -ForegroundColor Green
 Write-Host ""
 
-# --- 步驟 2: 安裝多國語言包 ---
-Write-Progress -Activity "Windows 系統初始化" -Status "步驟 2/3: 正在下載並安裝多國語言包 (需時較長)..." -PercentComplete 50
-Write-Host "[2/3] 正在安裝多國語言包 (en-US, zh-TW, zh-CN, ja-JP)..." -ForegroundColor Yellow
+# --- Step 2: Install Language Packs ---
+Write-Progress -Activity "Windows System Initialization" -Status "Step 2/3: Downloading and installing language packs (may take a while)..." -PercentComplete 50
+Write-Host "[2/3] Installing language packs (en-US, zh-TW, zh-CN, ja-JP)..." -ForegroundColor Yellow
 
 $Langs = @('en-US', 'zh-TW', 'zh-CN', 'ja-JP')
 $count = 0
 foreach ($Lang in $Langs) {
     $count++
     $percent = [int](50 + ($count / $Langs.Count * 30))
-    Write-Progress -Activity "Windows 系統初始化" -Status "步驟 2/3: 正在下載 $Lang ($count/$($Langs.Count))..." -PercentComplete $percent
-    Write-Host "  [+] 正在處理語言包: $Lang ..." -ForegroundColor Gray
+    Write-Progress -Activity "Windows System Initialization" -Status "Step 2/3: Downloading $Lang ($count/$($Langs.Count))..." -PercentComplete $percent
+    Write-Host "  [+] Processing language pack: $Lang ..." -ForegroundColor Gray
     Install-Language -Language $Lang -CopyToSettings
 }
-Write-Host " -> 所有語言包安裝完成！" -ForegroundColor Green
+Write-Host " -> All language packs installed successfully!" -ForegroundColor Green
 Write-Host ""
 
-# --- 步驟 3: 安裝預裝軟件 ---
-Write-Progress -Activity "Windows 系統初始化" -Status "步驟 3/3: 正在安裝 Google Chrome & 7-Zip..." -PercentComplete 85
-Write-Host "[3/3] 正在安裝應用程式..." -ForegroundColor Yellow
+# --- Step 3: Install Applications ---
+Write-Progress -Activity "Windows System Initialization" -Status "Step 3/3: Installing Google Chrome & 7-Zip..." -PercentComplete 85
+Write-Host "[3/3] Installing applications..." -ForegroundColor Yellow
 
-Write-Host "  [+] 安裝 Google Chrome..." -ForegroundColor Gray
+Write-Host "  [+] Installing Google Chrome..." -ForegroundColor Gray
 winget install --id Google.Chrome -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
 
-Write-Host "  [+] 安裝 7-Zip..." -ForegroundColor Gray
+Write-Host "  [+] Installing 7-Zip..." -ForegroundColor Gray
 winget install --id 7zip.7zip -e --silent --accept-source-agreements --accept-package-agreements | Out-Null
 
-Write-Host " -> 軟件安裝完成！" -ForegroundColor Green
+Write-Host " -> Application installation completed!" -ForegroundColor Green
 Write-Host ""
 
-# --- 完成 ---
-Write-Progress -Activity "Windows 系統初始化" -Status "全部完成！準備進入 Windows..." -PercentComplete 100
+# --- Complete ---
+Write-Progress -Activity "Windows System Initialization" -Status "Complete! Preparing to launch Windows..." -PercentComplete 100
 Write-Host "===============================================" -ForegroundColor Cyan
-Write-Host "   所有初始化項目已成功完成，3 秒後自動進入系統" -ForegroundColor Cyan
+Write-Host "   All tasks completed successfully. Entering OS in 3 seconds...   " -ForegroundColor Cyan
 Write-Host "===============================================" -ForegroundColor Cyan
 Start-Sleep -Seconds 3
