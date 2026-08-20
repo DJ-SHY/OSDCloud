@@ -275,6 +275,28 @@ reg.exe unload "HKU\DefaultUser" | Out-Null
 Write-Host " -> System & Default Profile tweaks applied successfully!" -ForegroundColor Green
 Write-Host ""
 
+# ==============================================================================
+# Default User Start Menu (start2.bin)
+# ==============================================================================
+Write-Host "  [+] Applying Custom Start Menu Layout (start2.bin) to Default Profile..." -ForegroundColor Gray
+
+$DefaultStartBinDir = "C:\Users\Default\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
+
+if (-not (Test-Path $DefaultStartBinDir)) {
+    New-Item -Path $DefaultStartBinDir -ItemType Directory -Force | Out-Null
+}
+
+$SourceStartBin = "C:\Windows\Setup\Scripts\start2.bin"
+
+# Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DJ-SHY/OSDCloud/main/start2.bin" -OutFile $SourceStartBin
+
+if (Test-Path $SourceStartBin) {
+    Copy-Item -Path $SourceStartBin -Destination "$DefaultStartBinDir\start2.bin" -Force
+    Write-Host " -> start2.bin applied successfully to Default Profile!" -ForegroundColor Green
+} else {
+    Write-Host " -> Warning: $SourceStartBin not found, skipping..." -ForegroundColor Red
+}
+
 # ------------------------------------------------------------------------------
 # COMPLETE & AUTO REBOOT
 # ------------------------------------------------------------------------------
