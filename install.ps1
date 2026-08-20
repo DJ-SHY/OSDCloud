@@ -288,7 +288,7 @@ if (-not (Test-Path $DefaultStartBinDir)) {
 
 $SourceStartBin = "C:\Windows\Setup\Scripts\start2.bin"
 
-# Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DJ-SHY/OSDCloud/main/start2.bin" -OutFile $SourceStartBin
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/DJ-SHY/OSDCloud/main/start2.bin" -OutFile $SourceStartBin
 
 if (Test-Path $SourceStartBin) {
     Copy-Item -Path $SourceStartBin -Destination "$DefaultStartBinDir\start2.bin" -Force
