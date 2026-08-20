@@ -84,6 +84,36 @@ foreach ($App in $BloatApps) {
 }
 Write-Host " -> Selected Apps debloated successfully!" -ForegroundColor Green
 
+# ==============================================================================
+Write-Host "  [+] Completely removing OneDrive & preventing auto-reinstall..." -ForegroundColor Gray
+
+$OneDriveSetup32 = "$env:SystemRoot\System32\OneDriveSetup.exe"
+$OneDriveSetup64 = "$env:SystemRoot\SysWOW64\OneDriveSetup.exe"
+
+if (Test-Path $OneDriveSetup64) {
+    Start-Process $OneDriveSetup64 -ArgumentList "/uninstall" -Wait -NoNewWindow
+} elseif (Test-Path $OneDriveSetup32) {
+    Start-Process $OneDriveSetup32 -ArgumentList "/uninstall" -Wait -NoNewWindow
+}
+
+Remove-Item -Path $OneDriveSetup32 -Force -ErrorAction SilentlyContinue
+Remove-Item -Path $OneDriveSetup64 -Force -ErrorAction SilentlyContinue
+
+$OneDrivePolicy = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive"
+if (-not (Test-Path $OneDrivePolicy)) { New-Item -Path $OneDrivePolicy -Force | Out-Null }
+Set-ItemProperty -Path $OneDrivePolicy -Name "DisableFileSyncNGSC" -Type DWord -Value 1 -Force
+
+reg load "HKU\DefaultUser" "C:\Users\Default\NTUSER.DAT" | Out-Null
+
+Remove-ItemProperty -Path "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Run" -Name "OneDriveSetup" -ErrorAction SilentlyContinue
+
+$OneDriveCLSID = "HKU:\DefaultUser\Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}"
+if (-not (Test-Path $OneDriveCLSID)) { New-Item -Path $OneDriveCLSID -Force | Out-Null }
+Set-ItemProperty -Path $OneDriveCLSID -Name "System.IsPinnedToNameSpaceTree" -Type DWord -Value 0 -Force
+
+reg unload "HKU\DefaultUser" | Out-Null
+# ==============================================================================
+
 Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Applying System-wide (HKLM) Tweaks..." -PercentComplete 40
 
 $Paths = @(
