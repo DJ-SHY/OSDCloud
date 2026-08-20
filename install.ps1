@@ -103,7 +103,7 @@ $OneDrivePolicy = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive"
 if (-not (Test-Path $OneDrivePolicy)) { New-Item -Path $OneDrivePolicy -Force | Out-Null }
 Set-ItemProperty -Path $OneDrivePolicy -Name "DisableFileSyncNGSC" -Type DWord -Value 1 -Force
 
-reg load "HKU\DefaultUser" "C:\Users\Default\NTUSER.DAT" | Out-Null
+reg load "HKU\Default" "C:\Users\Default\NTUSER.DAT" | Out-Null
 
 Remove-ItemProperty -Path "HKU:\DefaultUser\Software\Microsoft\Windows\CurrentVersion\Run" -Name "OneDriveSetup" -ErrorAction SilentlyContinue
 
@@ -111,14 +111,14 @@ $OneDriveCLSID = "HKU:\DefaultUser\Software\Classes\CLSID\{018D5C66-4533-4307-9B
 if (-not (Test-Path $OneDriveCLSID)) { New-Item -Path $OneDriveCLSID -Force | Out-Null }
 Set-ItemProperty -Path $OneDriveCLSID -Name "System.IsPinnedToNameSpaceTree" -Type DWord -Value 0 -Force
 
-reg unload "HKU\DefaultUser" | Out-Null
+reg unload "HKU\Default" | Out-Null
 # ==============================================================================
 
 Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Applying System-wide (HKLM) Tweaks..." -PercentComplete 40
 
-reg.exe unload "HKU\DefaultUser" 2>$null | Out-Null
+reg.exe unload "HKU\Default" 2>$null | Out-Null
 
-reg.exe load "HKU\DefaultUser" "C:\Users\Default\NTUSER.DAT" | Out-Null
+reg.exe load "HKU\Default" "C:\Users\Default\NTUSER.DAT" | Out-Null
 
 reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d 1 /f | Out-Null
 Reg.exe add "HKU\default\Software\Policies\Microsoft\Windows\WindowsAI" /v "DisableAIDataAnalysis" /t REG_DWORD /d "1" /f | Out-Null
@@ -270,7 +270,7 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\S
 [GC]::Collect()
 [GC]::WaitForPendingFinalizers()
 Start-Sleep -Seconds 1
-reg.exe unload "HKU\DefaultUser" | Out-Null
+reg.exe unload "HKU\Default" | Out-Null
 
 Write-Host " -> System & Default Profile tweaks applied successfully!" -ForegroundColor Green
 Write-Host ""
