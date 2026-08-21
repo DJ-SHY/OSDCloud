@@ -72,7 +72,7 @@ Write-Host "[$CurrentStep/$TotalSteps] Debloating Apps & Applying Selected Syste
 
 $BloatApps = @(
     "*MSTeams*", "*MicrosoftTeams*", "*MicrosoftOfficeHub*", "*OneDrive*",
-    "*OutlookForWindows*", "*BingNews*", "*BingSearch*", "*BingWeather*",
+    "*OutlookForWindows*", "*BingNews*", "*BingSearch*", "*BingWeather*", "*WebExperience*",
     "*Clipchamp*", "*WindowsFeedbackHub*", "*GetHelp*", "*ZuneMusic*", "*ZuneVideo*"
 )
 
