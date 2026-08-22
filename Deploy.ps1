@@ -234,24 +234,22 @@ if ($deploymentPhase -eq 'WinPE') {
     $null = Stop-Transcript -ErrorAction Ignore
 # ========================================================================
 # ========================================================================
-Write-Host -ForegroundColor Cyan "[OSDCloud] Loading Win10 & Win11 Driver Catalog into GUI..."
-    
+Write-Host -ForegroundColor Cyan "[OSDCloud] Unlocking Win10 Driver Packs for GUI Menu..."
+
     $allPacks = Get-OSDCloudDriverPacks -ErrorAction SilentlyContinue
+
+    foreach ($pack in $allPacks) {
+        if ($pack.OS -like "*10*" -or $pack.Name -like "*Win10*") {
+            $pack.OS = "Windows 11 / Windows 10"
+        }
+    }
 
     $global:OSDCloudDriverPacks = $allPacks
 
-    $matchedPack = $allPacks | Where-Object { 
-        ($_.Name -like "*$deviceModel*" -or $_.Model -like "*$deviceModel*" -or $_.Product -contains $deviceModel)
-    } | Select-Object -First 1
+    Deploy-OSDCloud
 
-    if ($matchedPack) {
-        Write-Host -ForegroundColor Green "[OSDCloud] Pre-selected for $deviceModel`: $($matchedPack.Name)"
-        Deploy-OSDCloud
-    } else {
-        Deploy-OSDCloud
-    }
- # ========================================================================
 
+# ========================================================================
 # ========================================================================
 }
 #endregion
