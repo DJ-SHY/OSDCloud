@@ -234,36 +234,24 @@ if ($deploymentPhase -eq 'WinPE') {
     $null = Stop-Transcript -ErrorAction Ignore
 # ========================================================================
 # ========================================================================
-Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceModel..."
+Write-Host -ForegroundColor Cyan "[OSDCloud] Loading Win10 & Win11 Driver Catalog into GUI..."
     
     $allPacks = Get-OSDCloudDriverPacks -ErrorAction SilentlyContinue
 
-    $driverPack = $allPacks | Where-Object { 
-        ($_.OS -like "*11*" -or $_.OperatingSystem -like "*11*") -and 
+    $global:OSDCloudDriverPacks = $allPacks
+
+    $matchedPack = $allPacks | Where-Object { 
         ($_.Name -like "*$deviceModel*" -or $_.Model -like "*$deviceModel*" -or $_.Product -contains $deviceModel)
-    }
+    } | Select-Object -First 1
 
-    if (-not $driverPack) {
-        Write-Host -ForegroundColor Yellow "[OSDCloud] No Win11 pack for $deviceModel. Falling back to Windows 10..."
-        $driverPack = $allPacks | Where-Object { 
-            ($_.OS -like "*10*" -or $_.OperatingSystem -like "*10*") -and 
-            ($_.Name -like "*$deviceModel*" -or $_.Model -like "*$deviceModel*" -or $_.Product -contains $deviceModel)
-        }
-    }
-
-    if ($driverPack) {
-        $foundPack = $driverPack | Select-Object -First 1
-        Write-Host -ForegroundColor Green "[OSDCloud] Selected Driver Pack: $($foundPack.Name)"
-        
-        if ($foundPack.OS -like "*10*" -or $foundPack.Name -like "*Win10*") {
-            Deploy-OSDCloud -DriverPackOS "Windows 10"
-        } else {
-            Deploy-OSDCloud
-        }
+    if ($matchedPack) {
+        Write-Host -ForegroundColor Green "[OSDCloud] Pre-selected for $deviceModel`: $($matchedPack.Name)"
+        Deploy-OSDCloud
     } else {
-        Write-Host -ForegroundColor Red "[!] No Driver Pack found in both Win11 & Win10 Catalogs. Proceeding without DriverPack."
         Deploy-OSDCloud
     }
+ # ========================================================================
+
 # ========================================================================
 }
 #endregion
