@@ -252,9 +252,14 @@ Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceMod
     }
 
     if ($driverPack) {
-        $selectedPack = $driverPack | Select-Object -First 1
-        Write-Host -ForegroundColor Green "[OSDCloud] Selected Driver Pack: $($selectedPack.Name)"
-        Deploy-OSDCloud -DriverPack $selectedPack
+        $foundPack = $driverPack | Select-Object -First 1
+        Write-Host -ForegroundColor Green "[OSDCloud] Selected Driver Pack: $($foundPack.Name)"
+        
+        if ($foundPack.OS -like "*10*" -or $foundPack.Name -like "*Win10*") {
+            Deploy-OSDCloud -DriverPackOS "Windows 10"
+        } else {
+            Deploy-OSDCloud
+        }
     } else {
         Write-Host -ForegroundColor Red "[!] No Driver Pack found in both Win11 & Win10 Catalogs. Proceeding without DriverPack."
         Deploy-OSDCloud
