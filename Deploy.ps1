@@ -233,14 +233,14 @@ if ($deploymentPhase -eq 'WinPE') {
     Write-Host -ForegroundColor DarkGray "[i] Finished in $TotalSeconds seconds"
     $null = Stop-Transcript -ErrorAction Ignore
 # ========================================================================
-    # ========================================================================
-    Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceModel..."
+# ========================================================================
+Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceModel..."
     
-    $driverPack = Get-OSDCloudDriverPacks -Manufacturer $deviceManufacturer -Model $deviceModel -OS "Windows 11" -ErrorAction SilentlyContinue
+    $driverPack = Get-OSDCloudDriverPacks -OS "Windows 11" -ErrorAction SilentlyContinue | Where-Object { $_.Model -like "*$deviceModel*" -or $_.Name -like "*$deviceModel*" }
 
     if (-not $driverPack) {
         Write-Host -ForegroundColor Yellow "[OSDCloud] No Win11 pack for $deviceModel. Falling back to Windows 10..."
-        $driverPack = Get-OSDCloudDriverPacks -Manufacturer $deviceManufacturer -Model $deviceModel -OS "Windows 10" -ErrorAction SilentlyContinue
+        $driverPack = Get-OSDCloudDriverPacks -OS "Windows 10" -ErrorAction SilentlyContinue | Where-Object { $_.Model -like "*$deviceModel*" -or $_.Name -like "*$deviceModel*" }
     }
 
     if ($driverPack) {
