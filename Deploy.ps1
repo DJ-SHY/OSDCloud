@@ -236,7 +236,7 @@ if ($deploymentPhase -eq 'WinPE') {
 # ========================================================================
 Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceModel..."
     
-    $allPacks = Get-OSDCloudDriverPacks
+    $allPacks = Get-OSDCloudDriverPacks -ErrorAction SilentlyContinue
 
     $driverPack = $allPacks | Where-Object { 
         ($_.OS -like "*11*" -or $_.OperatingSystem -like "*11*") -and 
@@ -252,13 +252,9 @@ Write-Host -ForegroundColor Cyan "[OSDCloud] Checking Driver Pack for $deviceMod
     }
 
     if ($driverPack) {
-        $selectedPack = $driverPack | Select-Object Name, OS, Size | Out-GridView -Title "Select Driver Pack for $deviceModel" -PassThru
-        if ($selectedPack) {
-            Write-Host -ForegroundColor Green "[OSDCloud] Deploying with $($selectedPack.Name)"
-            Deploy-OSDCloud -DriverPack $selectedPack
-        } else {
-            Deploy-OSDCloud
-        }
+        $selectedPack = $driverPack | Select-Object -First 1
+        Write-Host -ForegroundColor Green "[OSDCloud] Selected Driver Pack: $($selectedPack.Name)"
+        Deploy-OSDCloud -DriverPack $selectedPack
     } else {
         Write-Host -ForegroundColor Red "[!] No Driver Pack found in both Win11 & Win10 Catalogs. Proceeding without DriverPack."
         Deploy-OSDCloud
