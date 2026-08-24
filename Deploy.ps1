@@ -234,13 +234,13 @@ if ($deploymentPhase -eq 'WinPE') {
     $null = Stop-Transcript -ErrorAction Ignore
 # ========================================================================
 # ========================================================================
-Write-Host -ForegroundColor Cyan "[OSDCloud] Unlocking Win10 Driver Packs for GUI Menu..."
+Write-Host -ForegroundColor Cyan "[OSDCloud] Loading Driver Catalog into GUI..."
 
     $allPacks = Get-OSDCloudDriverPacks -ErrorAction SilentlyContinue
 
     foreach ($pack in $allPacks) {
         if ($pack.OS -like "*10*" -or $pack.Name -like "*Win10*") {
-            $pack.OS = "Windows 11 / Windows 10"
+            $pack.OS = "Windows 11"
         }
     }
 
