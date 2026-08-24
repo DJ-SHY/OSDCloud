@@ -246,7 +246,7 @@ Write-Host -ForegroundColor Cyan "[OSDCloud] Loading Driver Catalog into GUI..."
 
     $global:OSDCloudDriverPacks = $allPacks
 
-    Deploy-OSDCloud
+    Start-OSDCloudgui
 
 
 # ========================================================================
