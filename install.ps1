@@ -11,83 +11,59 @@ Write-Host "   Executing SetupComplete Post-Install Tasks            " -Foregrou
 Write-Host "=========================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
 # 
-# ------------------------------------------------------------------------------
-Write-Host "[OSDCloud] Unlocking Online FOD & Microsoft Update Policy..." -ForegroundColor Cyan
+# ==============================================================================
+Write-Host "[OSDCloud] Registering Direct Microsoft Update Channel..." -ForegroundColor Cyan
 
 $ServicingKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing"
 if (-not (Test-Path $ServicingKey)) { New-Item -Path $ServicingKey -Force | Out-Null }
 Set-ItemProperty -Path $ServicingKey -Name "LocalSourceConfigForFeatures" -Value 2 -Type DWord -Force
-Set-ItemProperty -Path $ServicingKey -Name "RepairContentServerSource" -Value 2 -Type DWord -Force
 
 $WuKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
 if (-not (Test-Path $WuKey)) { New-Item -Path $WuKey -Force | Out-Null }
 Set-ItemProperty -Path $WuKey -Name "UseWUServer" -Value 0 -Type DWord -Force
 
+try {
+    $ServiceManager = New-Object -ComObject "Microsoft.Update.ServiceManager"
+    $ServiceManager.ClientApplicationID = "OSDCloud"
+    $ServiceManager.AddService2("7971f918-a847-4430-9279-4a52d1efe18d", 7, "") 2>$null | Out-Null
+} catch {}
+
 Set-Service -Name "wuauserv" -StartupType Automatic -ErrorAction SilentlyContinue
-Set-Service -Name "bits" -StartupType Automatic -ErrorAction SilentlyContinue
 Restart-Service -Name "wuauserv" -Force -ErrorAction SilentlyContinue
-Restart-Service -Name "bits" -Force -ErrorAction SilentlyContinue
-$TotalSteps = 3
 
-# ------------------------------------------------------------------------------
-# STEP 1/3: .NET Framework 3.5
-# ------------------------------------------------------------------------------
-$CurrentStep = 1
-$OverallPercent = [int](($CurrentStep - 1) / $TotalSteps * 100)
-
-Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Enabling .NET Framework 3.5" -PercentComplete $OverallPercent
-Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Running DISM Online Enable-Feature..." -PercentComplete 10
-
-Write-Host "[$CurrentStep/$TotalSteps] Installing .NET Framework 3.5..." -ForegroundColor Yellow
-dism /Online /Enable-Feature /FeatureName:NetFx3 /All /NoRestart | Out-Null
-$dismResult = $LASTEXITCODE
-
-if ($dismResult -eq 0 -or $dismResult -eq 3010) {
-    Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Completed .NET 3.5!" -PercentComplete 100
-    Write-Host " -> .NET Framework 3.5 installed successfully!" -ForegroundColor Green
-} else {
-    Write-Host " [!] .NET Framework 3.5 installation failed with Exit Code: $dismResult" -ForegroundColor Red
+# ==============================================================================
+# 
+# ==============================================================================
+Write-Host "[1/2] Fetching & Installing .NET 3.5 directly from Microsoft..." -ForegroundColor Yellow
+try {
+      Add-WindowsCapability -Online -Name "NetFX3~~~~" -ErrorAction Stop | Out-Null
+    Write-Host " -> .NET 3.5 downloaded & installed successfully from Microsoft!" -ForegroundColor Green
+} catch {
+    Write-Host " [!] Failed to install .NET 3.5: $_" -ForegroundColor Red
 }
+
 Write-Host ""
 
-# ------------------------------------------------------------------------------
-# STEP 2/3: Language Packs (zh-HK, zh-CN, ja-JP) & Set Default UI to en-US
-# ------------------------------------------------------------------------------
-$CurrentStep = 2
+# ==============================================================================
+# 
+# ==============================================================================
+Write-Host "[2/2] Fetching & Installing Language Packs directly from Microsoft..." -ForegroundColor Yellow
 $Langs = @('zh-HK', 'zh-CN', 'ja-JP')
-Write-Host "[$CurrentStep/$TotalSteps] Installing Language Packs ($($Langs.Count) total)..." -ForegroundColor Yellow
 
-$LangIndex = 0
 foreach ($Lang in $Langs) {
-    $LangIndex++
-    
-    $SubPercent = [int](($LangIndex - 1) / $Langs.Count * 100)
-    $OverallPercent = [int](33 + (($LangIndex - 1) / $Langs.Count * 30))
-
-    Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Installing Languages ($LangIndex/$($Langs.Count))" -PercentComplete $OverallPercent
-    Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: $Lang" -Status "Downloading and applying $Lang..." -PercentComplete $SubPercent
-
-    Write-Host "  [+] [$LangIndex/$($Langs.Count)] Processing language pack: $Lang..." -ForegroundColor Gray
+    Write-Host "  [+] Processing language pack from MS: $Lang..." -ForegroundColor Gray
     try {
         Install-Language -Language $Lang -CopyToSettings -ErrorAction Stop
+        Write-Host "  [OK] Successfully installed $Lang from Microsoft!" -ForegroundColor Green
     } catch {
         Write-Host "  [!] Failed to install $Lang : $_" -ForegroundColor Red
     }
 }
 
-Write-Progress -Id 1 -Activity "Overall Progress" -Status "Step $($CurrentStep)/$($TotalSteps): Locking Default UI Language to en-US" -PercentComplete 63
-Write-Progress -Id 2 -ParentId 1 -Activity "Current Component: Default Language" -Status "Locking system UI to en-US..." -PercentComplete 90
-
-Write-Host "  [+] Finalizing default language configuration for en-US..." -ForegroundColor Gray
-try {
-    Install-Language -Language en-US -CopyToSettings -ErrorAction SilentlyContinue
-} catch {}
-
-Write-Host " -> All language packs processed!" -ForegroundColor Green
-Write-Host ""
-
+Write-Host "  [+] Setting Default UI Language to en-US..." -ForegroundColor Gray
+Install-Language -Language en-US -CopyToSettings -ErrorAction SilentlyContinue
 # ------------------------------------------------------------------------------
 # STEP 3/3: Debloat Apps & Apply Custom System Tweaks
 # ------------------------------------------------------------------------------
