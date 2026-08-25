@@ -50,6 +50,6 @@ Write-Host "=========================================================" -Foregrou
 Start-Sleep -Seconds 2
 Write-Progress -Id 1 -Activity " " -Status " " -Completed
 
-shutdown.exe /r /t 5 /c "Post-installation modular setup complete. Rebooting system..."
+# shutdown.exe /r /t 5 /c "Post-installation modular setup complete. Rebooting system..."
 
 exit 0
