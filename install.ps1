@@ -12,7 +12,7 @@ Write-Host "=========================================================" -Foregrou
 Write-Host ""
 
 # ------------------------------------------------------------------------------
-# PRE-REQ: 啟動 Windows Update 服務 (Online 安裝必需)
+# 
 # ------------------------------------------------------------------------------
 Write-Host "[OSDCloud] Starting required background services..." -ForegroundColor Cyan
 Set-Service -Name "wuauserv" -StartupType Automatic -ErrorAction SilentlyContinue
@@ -123,13 +123,13 @@ Remove-Item -Path $OneDriveSetup64 -Force -ErrorAction SilentlyContinue
 # ==============================================================================
 Write-Progress -Id 2 -ParentId 1 -Activity "Component Progress" -Status "Applying System-wide (HKLM & Default Hive) Tweaks..." -PercentComplete 40
 
-# 確保先卸載避免衝突
+
 reg.exe unload "HKU\Default" 2>$null | Out-Null
 
-# 載入 Default Profile Hive
+
 reg.exe load "HKU\Default" "C:\Users\Default\NTUSER.DAT" | Out-Null
 
-# HKLM Policies
+
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive" /v "DisableFileSyncNGSC" /t REG_DWORD /d 1 /f | Out-Null
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v "DisableAIDataAnalysis" /t REG_DWORD /d 1 /f | Out-Null
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v "AllowRecallEnablement" /t REG_DWORD /d 0 /f | Out-Null
@@ -137,7 +137,7 @@ Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" /v "TurnOffSavi
 
 Reg.exe add "HKLM\SYSTEM\CurrentControlSet\Services\WSAIFabricSvc" /v "Start" /t REG_DWORD /d 3 /f | Out-Null
 
-# Edge Policies
+
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "NewTabPageContentEnabled" /t REG_DWORD /d 0 /f | Out-Null
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "NewTabPageHideDefaultTopSites" /t REG_DWORD /d 1 /f | Out-Null
 Reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Edge" /v "EdgeShoppingAssistantEnabled" /t REG_DWORD /d 0 /f | Out-Null
@@ -195,7 +195,7 @@ Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\ContentDelive
 Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager" /v "RotatingLockScreenOverlayEnabled" /t REG_DWORD /d 0 /f | Out-Null
 Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\SearchSettings" /v "IsDynamicSearchBoxEnabled" /t REG_DWORD /d 0 /f | Out-Null
 
-# 修正：Restore Win10 Context Menu (改為正確的 REG_SZ 類別)
+
 Reg.exe add "HKU\default\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /ve /t REG_SZ /d "" /f | Out-Null
 
 Reg.exe add "HKU\default\SOFTWARE\Policies\Microsoft\Windows\Explorer" /v "HideRecommendedSection" /t REG_DWORD /d 1 /f | Out-Null
@@ -233,7 +233,6 @@ Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\Explorer\Adva
 Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\Search" /v "SearchboxTaskbarMode" /t REG_DWORD /d 1 /f | Out-Null
 Reg.exe add "HKU\default\Software\Microsoft\Windows\CurrentVersion\Start" /v "AllAppsViewMode" /t REG_DWORD /d 2 /f | Out-Null
 
-# 垃圾回收並安全卸載 Default Hive
 [GC]::Collect()
 [GC]::WaitForPendingFinalizers()
 Start-Sleep -Seconds 1
