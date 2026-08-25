@@ -14,11 +14,21 @@ Write-Host ""
 # ------------------------------------------------------------------------------
 # 
 # ------------------------------------------------------------------------------
-Write-Host "[OSDCloud] Starting required background services..." -ForegroundColor Cyan
-Set-Service -Name "wuauserv" -StartupType Automatic -ErrorAction SilentlyContinue
-Start-Service -Name "wuauserv" -ErrorAction SilentlyContinue
-Start-Service -Name "BITS" -ErrorAction SilentlyContinue
+Write-Host "[OSDCloud] Unlocking Online FOD & Microsoft Update Policy..." -ForegroundColor Cyan
 
+$ServicingKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing"
+if (-not (Test-Path $ServicingKey)) { New-Item -Path $ServicingKey -Force | Out-Null }
+Set-ItemProperty -Path $ServicingKey -Name "LocalSourceConfigForFeatures" -Value 2 -Type DWord -Force
+Set-ItemProperty -Path $ServicingKey -Name "RepairContentServerSource" -Value 2 -Type DWord -Force
+
+$WuKey = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU"
+if (-not (Test-Path $WuKey)) { New-Item -Path $WuKey -Force | Out-Null }
+Set-ItemProperty -Path $WuKey -Name "UseWUServer" -Value 0 -Type DWord -Force
+
+Set-Service -Name "wuauserv" -StartupType Automatic -ErrorAction SilentlyContinue
+Set-Service -Name "bits" -StartupType Automatic -ErrorAction SilentlyContinue
+Restart-Service -Name "wuauserv" -Force -ErrorAction SilentlyContinue
+Restart-Service -Name "bits" -Force -ErrorAction SilentlyContinue
 $TotalSteps = 3
 
 # ------------------------------------------------------------------------------
