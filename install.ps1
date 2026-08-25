@@ -13,7 +13,7 @@ Write-Host ""
 
 $ScriptDir = "C:\Windows\Setup\Scripts"
 $Modules = @(
-    @{ Name = "01.ApplyUnattended.ps1"; Desc = "ApplyUnattended" },
+    # @{ Name = "01.ApplyUnattended.ps1"; Desc = "ApplyUnattended" },
     @{ Name = "02.InstallNet35.ps1"; Desc = "Installing .Net 3.5" },
     @{ Name = "03.InstallLangPK.ps1"; Desc = "Installing Language Packs" },
     @{ Name = "04.DebloatApp.ps1"; Desc = "Debloating" },
