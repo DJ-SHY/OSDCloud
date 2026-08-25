@@ -7,7 +7,7 @@ foreach ($Lang in $Langs) {
         Install-Language -Language $Lang -CopyToSettings -ErrorAction Stop
         Write-Host "  [OK] Successfully installed $Lang!" -ForegroundColor Green
     } catch {
-        Write-Host "  [!] Failed to install $Lang: $_" -ForegroundColor Red
+        Write-Host "  [!] Failed to install ${Lang}: $_" -ForegroundColor Red
     }
 }
 
