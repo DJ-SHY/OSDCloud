@@ -13,12 +13,13 @@ Write-Host ""
 
 $ScriptDir = "C:\Windows\Setup\Scripts"
 $Modules = @(
-    @{ Name = "02-InstallDotNet35.ps1"; Desc = "Installing .NET Framework 3.5" },
-    @{ Name = "03-InstallLanguagePacks.ps1"; Desc = "Installing Language Packs" },
-    @{ Name = "04-DebloatApps.ps1"; Desc = "Debloating Provisioned Apps" },
-    @{ Name = "05-RemoveOneDrive.ps1"; Desc = "Removing OneDrive" },
-    @{ Name = "06-ApplyRegistryTweaks.ps1"; Desc = "Applying Registry & System Tweaks" },
-    @{ Name = "07-ApplyStartMenu.ps1"; Desc = "Applying Custom Start Menu" }
+    @{ Name = "01.ApplyUnattended.ps1"; Desc = "ApplyUnattended" },
+    @{ Name = "02.InstallNet35.ps1"; Desc = "Installing .Net 3.5" },
+    @{ Name = "03.InstallLangPK.ps1"; Desc = "Installing Language Packs" },
+    @{ Name = "04.DebloatApp.ps1"; Desc = "Debloating" },
+    @{ Name = "05.RemoveOneDrv.ps1"; Desc = "Removing OneDrive" },
+    @{ Name = "06.SysTweak.ps1"; Desc = "Applying Registry & System Tweaks" },
+    @{ Name = "07.Startmenu.ps1"; Desc = "Applying Custom Start Menu" }
 )
 
 $TotalSteps = $Modules.Count
