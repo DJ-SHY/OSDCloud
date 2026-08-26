@@ -20,7 +20,7 @@ $Modules = @(
     @{ Name = "05.RemoveOneDrv.ps1"; Desc = "Removing OneDrive" },
     @{ Name = "06.SysTweak.ps1"; Desc = "Applying Registry & System Tweaks" },
     @{ Name = "07.Startmenu.ps1"; Desc = "Applying Custom Start Menu" },
-    @{ Name = "08.InstallSoft.ps1"; Desc = "Installing System Software" },
+    @{ Name = "08.InstallSoft.ps1"; Desc = "Installing System Software" }
 )
 
 $TotalSteps = $Modules.Count
