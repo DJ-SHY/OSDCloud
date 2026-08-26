@@ -47,7 +47,7 @@ try {
 # 1. Microsoft Office 
 # ------------------------------------------------------------------------------
 $OfficeSetup = Join-Path $AppsDir "Office\setup.exe"
-$OfficeConfig = Join-Path $AppsDir "Office\configuration.xml"
+$OfficeConfig = Join-Path $AppsDir "Office\configuration24.xml"
 
 if ((Test-Path $OfficeSetup) -and (Test-Path $OfficeConfig)) {
     Write-Host "  [+] Installing Microsoft Office 2024 Full..." -ForegroundColor Gray
