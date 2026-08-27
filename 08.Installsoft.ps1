@@ -18,13 +18,13 @@ Write-Host "  [+] Fetching & Installing Latest VC++ AIO directly from GitHub..."
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$TempExe = "$env:TEMP\VisualCppRedist_AIO.exe"
+$TempExe = "$env:TEMP\VisualCppRedist_AIO_x86_x64.exe"
 
 try {
     $GithubApiUrl = "https://api.github.com/repos/abbodi1406/vcredist/releases/latest"
     $ReleaseInfo  = Invoke-RestMethod -Uri $GithubApiUrl -UseBasicParsing -ErrorAction Stop
 
-    $DownloadUrl  = ($ReleaseInfo.assets | Where-Object { $_.name -like "*.exe" } | Select-Object -First 1).browser_download_url
+    $DownloadUrl  = ($ReleaseInfo.assets | Where-Object { $_.name -like "*x86_x64*.exe" } | Select-Object -First 1).browser_download_url
 
     if (-not $DownloadUrl) {
         throw "Could not find .exe asset in latest GitHub release."
