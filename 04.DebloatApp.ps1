@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Debloating Selected Provisioned Apps..." -ForegroundColor Yellow
+Write-Host "[!] Debloating Selected Provisioned Apps..." -ForegroundColor Yellow
 
 $BloatApps = @(
     "*MSTeams*", "*MicrosoftTeams*", "*MicrosoftOfficeHub*", "*OneDrive*",
