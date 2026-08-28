@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Completely removing OneDrive..." -ForegroundColor Gray
+Write-Host "[!] Completely removing OneDrive..." -ForegroundColor Gray
 
 $OneDriveSetup32 = "$env:SystemRoot\System32\OneDriveSetup.exe"
 $OneDriveSetup64 = "$env:SystemRoot\SysWOW64\OneDriveSetup.exe"
