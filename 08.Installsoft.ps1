@@ -2,7 +2,7 @@
 # File: 08.InstallSoft.ps1
 # Path: C:\Windows\Setup\Scripts\08.Installsoft.ps1
 # ==============================================================================
-Write-Host "[OSDCloud] Installing Software Packages..." -ForegroundColor Yellow
+Write-Host "[!] Installing Software Packages..." -ForegroundColor Yellow
 
 $AppsDir = "$PSScriptRoot\Apps"
 
