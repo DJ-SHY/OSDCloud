@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Applying System-wide (HKLM & Default Hive) Tweaks..." -ForegroundColor Yellow
+Write-Host "[!] Applying System-wide (HKLM & Default Hive) Tweaks..." -ForegroundColor Yellow
 
 reg.exe unload "HKU\Default" 2>$null | Out-Null
 reg.exe load "HKU\Default" "C:\Users\Default\NTUSER.DAT" | Out-Null
