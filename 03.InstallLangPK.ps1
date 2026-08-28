@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Fetching & Installing Language Packs directly from Microsoft..." -ForegroundColor Yellow
+Write-Host "[!] Fetching & Installing Language Packs directly from Microsoft..." -ForegroundColor Yellow
 $Langs = @('zh-HK', 'zh-CN', 'ja-JP')
 
 foreach ($Lang in $Langs) {
