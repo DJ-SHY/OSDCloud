@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Unlocking Windows Update & Installing .NET 3.5..." -ForegroundColor Cyan
+Write-Host "[!] Unlocking Windows Update & Installing .NET 3.5..." -ForegroundColor Cyan
 
 # $ServicingKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Servicing"
 # if (-not (Test-Path $ServicingKey)) { New-Item -Path $ServicingKey -Force | Out-Null }
