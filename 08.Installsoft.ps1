@@ -105,6 +105,66 @@ if ($KLiteInstaller) {
 }
 
 # ==========================================
+# 5. Install .NET 8 Desktop Runtime (x64)
+# ==========================================
+
+Write-Host "[!] Installing .NET Desktop Runtime..." -ForegroundColor Cyan
+
+$TempDir = "$env:TEMP\DotNet8"
+if (-not (Test-Path $TempDir)) { 
+    New-Item -Path $TempDir -ItemType Directory -Force | Out-Null 
+}
+
+# Replace with your self-hosted R2 URL or Microsoft direct link
+$DotNet8Url = "https://chows.cloud/MSNET/windowsdesktopruntime8x64.exe"
+$InstallerPath = Join-Path -Path $TempDir -ChildPath "dotnet8-desktop-runtime.exe"
+
+try {
+    Write-Host "  [+] Downloading .NET 8 Desktop Runtime..." -ForegroundColor Gray
+    Invoke-WebRequest -Uri $DotNet8Url -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
+    Write-Host "  [OK] Download completed successfully." -ForegroundColor Green
+    
+    Write-Host "  [+] Running silent installation..." -ForegroundColor Gray
+    # Microsoft official silent flags: /install /quiet /norestart
+    Start-Process -FilePath $InstallerPath -ArgumentList "/install /quiet /norestart" -Wait -NoNewWindow
+    Write-Host "  [OK] .NET 8 Desktop Runtime installed successfully." -ForegroundColor Green
+} catch {
+    Write-Host "  [!] Failed to install .NET 8 Desktop Runtime: $_" -ForegroundColor Red
+} finally {
+    Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# ==========================================
+# Install .NET 10 Desktop Runtime (x64)
+# ==========================================
+
+Write-Host "[!] Installing .NET 10 Desktop Runtime..." -ForegroundColor Cyan
+
+$TempDir = "$env:TEMP\DotNet10"
+if (-not (Test-Path $TempDir)) { 
+    New-Item -Path $TempDir -ItemType Directory -Force | Out-Null 
+}
+
+# Replace with your self-hosted R2 URL or Microsoft direct link
+$DotNet10Url = "https://chows.cloud/MSNET/windowsdesktopruntime10x64.exe"
+$InstallerPath = Join-Path -Path $TempDir -ChildPath "dotnet10-desktop-runtime.exe"
+
+try {
+    Write-Host "  [+] Downloading .NET 10 Desktop Runtime..." -ForegroundColor Gray
+    Invoke-WebRequest -Uri $DotNet10Url -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
+    Write-Host "  [OK] Download completed successfully." -ForegroundColor Green
+    
+    Write-Host "  [+] Running silent installation..." -ForegroundColor Gray
+    # Microsoft official silent flags: /install /quiet /norestart
+    Start-Process -FilePath $InstallerPath -ArgumentList "/install /quiet /norestart" -Wait -NoNewWindow
+    Write-Host "  [OK] .NET 10 Desktop Runtime installed successfully." -ForegroundColor Green
+} catch {
+    Write-Host "  [!] Failed to install .NET 10 Desktop Runtime: $_" -ForegroundColor Red
+} finally {
+    Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+# ==========================================
 # Detect Dell Hardware & Install Dell Command | Update
 # ==========================================
 
@@ -123,7 +183,7 @@ if ($Manufacturer -match "Dell") {
     }
 
     # Dell Command | Update Universal Installer Official URL
-    $DcuUrl = "https://dl.dell.com/FOLDER11681270M/1/Dell-Command-Update-Application-Universal_31P8R_WIN_5.3.0_A00.EXE"
+    $DcuUrl = "https://chows.cloud/DellCommandUpdate.EXE"
     $InstallerPath = Join-Path -Path $TempDir -ChildPath "DCU_Setup.exe"
 
     try {
