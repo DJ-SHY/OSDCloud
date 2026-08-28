@@ -1,4 +1,4 @@
-Write-Host "[OSDCloud] Applying Custom Start Menu Layout (start2.bin)..." -ForegroundColor Gray
+Write-Host "[!] Applying Custom Start Menu Layout (start2.bin)..." -ForegroundColor Gray
 
 $DefaultStartBinDir = "C:\Users\Default\AppData\Local\Packages\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\LocalState"
 if (-not (Test-Path $DefaultStartBinDir)) {
