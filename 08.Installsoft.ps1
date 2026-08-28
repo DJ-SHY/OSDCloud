@@ -104,4 +104,43 @@ if ($KLiteInstaller) {
     Write-Host "  [-] K-Lite Codec Pack Mega installer not found, skipping..." -ForegroundColor Yellow
 }
 
+# ==========================================
+# Detect Dell Hardware & Install Dell Command | Update
+# ==========================================
+
+Write-Host "[!] Checking hardware manufacturer..." -ForegroundColor Cyan
+
+$SystemInfo = Get-CimInstance -ClassName Win32_ComputerSystem
+$Manufacturer = $SystemInfo.Manufacturer
+
+if ($Manufacturer -match "Dell") {
+    Write-Host "[OK] Dell hardware detected: $Manufacturer" -ForegroundColor Green
+    Write-Host "[OSDCloud] Downloading Dell Command | Update Universal..." -ForegroundColor Cyan
+
+    $TempDir = "$env:TEMP\DellDCU"
+    if (-not (Test-Path $TempDir)) { 
+        New-Item -Path $TempDir -ItemType Directory -Force | Out-Null 
+    }
+
+    # Dell Command | Update Universal Installer Official URL
+    $DcuUrl = "https://dl.dell.com/FOLDER11681270M/1/Dell-Command-Update-Application-Universal_31P8R_WIN_5.3.0_A00.EXE"
+    $InstallerPath = Join-Path -Path $TempDir -ChildPath "DCU_Setup.exe"
+
+    try {
+        Invoke-WebRequest -Uri $DcuUrl -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
+        Write-Host "  [OK] Download completed successfully." -ForegroundColor Green
+        
+        Write-Host "[!] Installing Dell Command | Update silently..." -ForegroundColor Cyan
+        # Silent install flag for Dell Update packages is /s
+        Start-Process -FilePath $InstallerPath -ArgumentList "/s" -Wait -NoNewWindow
+        Write-Host "  [OK] Dell Command | Update installation finished." -ForegroundColor Green
+    } catch {
+        Write-Host "  [!] Failed to download or install Dell Command | Update: $_" -ForegroundColor Red
+    } finally {
+        # Clean up temporary installer
+        Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+    }
+} else {
+    Write-Host "[!] Non-Dell hardware detected ($Manufacturer). Skipping Dell Command | Update installation." -ForegroundColor Yellow
+}
 Write-Host " -> All software installation tasks completed!" -ForegroundColor Green
