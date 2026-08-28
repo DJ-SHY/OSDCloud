@@ -52,6 +52,7 @@ Start-Sleep -Seconds 2
 Write-Progress -Id 1 -Activity " " -Status " " -Completed
 
 Remove-Item -Path "C:\OSDCloud\OS" -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\OSDCloud\configs" -Recurse -Force -ErrorAction SilentlyContinue
 # shutdown.exe /r /t 5 /c "Post-installation modular setup complete. Rebooting system..."
 
 exit 0
