@@ -119,6 +119,12 @@ if (-not (Test-Path $TempDir)) {
 $DotNet8Url = "https://chows.cloud/MSNET/windowsdesktopruntime8x64.exe"
 $InstallerPath = Join-Path -Path $TempDir -ChildPath "dotnet8-desktop-runtime.exe"
 
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+$ProgressPreference = 'SilentlyContinue'
+
+$TempDir = "$env:TEMP\DotNetInstall"
+if (-not (Test-Path $TempDir)) { New-Item -Path $TempDir -ItemType Directory -Force | Out-Null }
+
 try {
     Write-Host "  [+] Downloading .NET 8 Desktop Runtime..." -ForegroundColor Gray
     Invoke-WebRequest -Uri $DotNet8Url -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
