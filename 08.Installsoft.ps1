@@ -59,7 +59,7 @@ if ((Test-Path $OfficeSetup) -and (Test-Path $OfficeConfig)) {
 
 # ==========================================
 # 2.Download & Silent Install Adobe Acrobat Pro 2026 from Cloudflare R2
-# Multi-part Split Zip Handling via 7-Zip CLI
+# Raw Split Volumes: AAP2026.zip.001 - AAP2026.zip.009
 # ==========================================
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
@@ -73,10 +73,9 @@ $TargetExeName = "Adobe.Acrobat.Pro.v2026.002.21869x64.exe"
 if (-not (Test-Path $TempDir))    { New-Item -Path $TempDir -ItemType Directory -Force | Out-Null }
 if (-not (Test-Path $ExtractDir)) { New-Item -Path $ExtractDir -ItemType Directory -Force | Out-Null }
 
-$SplitFiles = 1..8 | ForEach-Object { "AAP2026.z{0:D2}" -f $_ }
-$AllFiles   = $SplitFiles + "AAP2026.zip"
+$AllFiles = 1..9 | ForEach-Object { "AAP2026.zip.{0:D3}" -f $_ }
 
-Write-Host "[!] Downloading Adobe Acrobat Pro 2026 split packages from Cloudflare R2..." -ForegroundColor Cyan
+Write-Host "[!] Downloading Adobe Acrobat Pro 2026 split volumes (.001 - .009)..." -ForegroundColor Cyan
 
 foreach ($File in $AllFiles) {
     $FileUrl     = "$R2BaseUrl/$File"
@@ -92,36 +91,40 @@ foreach ($File in $AllFiles) {
     }
 }
 
-$7zaPath = Join-Path -Path $TempDir -ChildPath "7zr.exe"
-
-if (-not (Test-Path $7zaPath)) {
-    Write-Host "[!] Fetching 7-Zip Standalone CLI (7za.exe)..." -ForegroundColor Cyan
-    try {
-            $7zaUrl = "$R2BaseUrl/7zr.exe"
-        Invoke-WebRequest -Uri $7zaUrl -OutFile $7zaPath -UseBasicParsing -ErrorAction Stop
-    } catch {
-        Write-Host "  [!] R2 7za.exe not found, downloading from official fallback source..." -ForegroundColor Yellow
-        $FallbackUrl = "https://www.7-zip.org/a/7za920.zip"
-        $Zip7zPath   = Join-Path -Path $TempDir -ChildPath "7za920.zip"
-        Invoke-WebRequest -Uri $FallbackUrl -OutFile $Zip7zPath -UseBasicParsing
-        Expand-Archive -Path $Zip7zPath -DestinationPath $TempDir -Force
-    }
-}
-
-Write-Host "[!] Extracting multi-part Zip archive using 7-Zip..." -ForegroundColor Cyan
-$MainZipPath = Join-Path -Path $TempDir -ChildPath "AAP2026.zip"
+Write-Host "[!] Binary merging .001 ~ .009 split volumes into AAP2026.zip..." -ForegroundColor Cyan
+$MergedZipPath = Join-Path -Path $TempDir -ChildPath "AAP2026.zip"
 
 try {
-    $ExtractProcess = Start-Process -FilePath $7zaPath -ArgumentList "x `"$MainZipPath`" -o`"$ExtractDir`" -y" -Wait -PassThru -NoNewWindow
+    $OutputStream = [System.IO.File]::Create($MergedZipPath)
+    foreach ($FileName in $AllFiles) {
+        $FilePath = Join-Path -Path $TempDir -ChildPath $FileName
+        Write-Host "  [+] Merging $FileName..." -ForegroundColor Gray
+        $InputStream = [System.IO.File]::OpenRead($FilePath)
+        $InputStream.CopyTo($OutputStream)
+        $InputStream.Close()
+    }
+    $OutputStream.Close()
+    Write-Host "  [OK] Successfully combined into AAP2026.zip!" -ForegroundColor Green
+} catch {
+    Write-Host "  [!] File stream merge failed: $_" -ForegroundColor Red
+    if ($OutputStream) { $OutputStream.Close() }
+    Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
+}
+
+Write-Host "[!] Extracting merged Zip archive via native tar.exe..." -ForegroundColor Cyan
+
+try {
+    $ExtractProcess = Start-Process -FilePath "tar.exe" -ArgumentList "-xf `"$MergedZipPath`" -C `"$ExtractDir`"" -Wait -PassThru -NoNewWindow
     
     if ($ExtractProcess.ExitCode -eq 0) {
         Write-Host "  [OK] Extraction completed successfully!" -ForegroundColor Green
     } else {
-        Write-Host "  [!] 7-Zip extraction failed with Exit Code: $($ExtractProcess.ExitCode)" -ForegroundColor Red
+        Write-Host "  [!] tar.exe extraction failed with Exit Code: $($ExtractProcess.ExitCode)" -ForegroundColor Red
         return
     }
 } catch {
-    Write-Host "  [!] Failed to execute 7-Zip: $_" -ForegroundColor Red
+    Write-Host "  [!] Failed to run tar.exe: $_" -ForegroundColor Red
     return
 }
 
@@ -130,7 +133,7 @@ $InstallerPath = Get-ChildItem -Path $ExtractDir -Filter $TargetExeName -Recurse
 
 if ($InstallerPath) {
     try {
-        Write-Host "  [+] Running $($InstallerPath.Name) /s..." -ForegroundColor Gray
+        Write-Host "  [+] Running $($InstallerPath.Name) /S..." -ForegroundColor Gray
         $Process = Start-Process -FilePath $InstallerPath.FullName -ArgumentList "/s" -Wait -PassThru -NoNewWindow
         
         if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {
