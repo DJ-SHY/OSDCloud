@@ -57,23 +57,96 @@ if ((Test-Path $OfficeSetup) -and (Test-Path $OfficeConfig)) {
     Write-Host "  [-] Office setup files not found, skipping..." -ForegroundColor Yellow
 }
 
-# ------------------------------------------------------------------------------
-# 2. Adobe Acrobat Reader / DC (MSI 或 EXE 靜默)
-# ------------------------------------------------------------------------------
-# $AcrobatMsi = Join-Path $AppsDir "Acrobat\AcroRead.msi"
-# $AcrobatExe = Join-Path $AppsDir "Acrobat\AcroRdrDC.exe"
+# ==========================================
+# Download & Silent Install Adobe Acrobat Pro 2026 from Cloudflare R2
+# Multi-part Split Zip Handling (AAP2026.z01 - z08 + AAP2026.zip)
+# ==========================================
 
-# if (Test-Path $AcrobatMsi) {
-#    Write-Host "  [+] Installing Adobe Acrobat (MSI)..." -ForegroundColor Gray
-#    Start-Process msiexec.exe -ArgumentList "/i `"$AcrobatMsi`" /qn /norestart EULA_ACCEPT=YES" -Wait -NoNewWindow
-#    Write-Host "  [OK] Adobe Acrobat installed successfully!" -ForegroundColor Green
-#} elseif (Test-Path $AcrobatExe) {
-#    Write-Host "  [+] Installing Adobe Acrobat (EXE)..." -ForegroundColor Gray
-#    Start-Process -FilePath $AcrobatExe -ArgumentList "/sAll /rs /msi EULA_ACCEPT=YES" -Wait -NoNewWindow
-#    Write-Host "  [OK] Adobe Acrobat installed successfully!" -ForegroundColor Green
-#} else {
-#    Write-Host "  [-] Adobe Acrobat installer not found, skipping..." -ForegroundColor Yellow
-#}
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
+$ProgressPreference = 'SilentlyContinue'
+
+$R2BaseUrl     = "https://chows.cloud/AAP2026"
+$TempDir       = "$env:TEMP\AdobeAcrobatInstall"
+$ExtractDir    = "$TempDir\Extracted"
+$TargetExeName = "Adobe.Acrobat.Pro.v2026.002.21869x64.exe"
+
+if (-not (Test-Path $TempDir))    { New-Item -Path $TempDir -ItemType Directory -Force | Out-Null }
+if (-not (Test-Path $ExtractDir)) { New-Item -Path $ExtractDir -ItemType Directory -Force | Out-Null }
+
+$SplitFiles = 1..8 | ForEach-Object { "AAP2026.z{0:D2}" -f $_ }
+$AllFiles   = $SplitFiles + "AAP2026.zip"
+
+Write-Host "[!] Downloading Adobe Acrobat Pro 2026 packages from Cloudflare R2..." -ForegroundColor Cyan
+
+foreach ($File in $AllFiles) {
+    $FileUrl     = "$R2BaseUrl/$File"
+    $Destination = Join-Path -Path $TempDir -ChildPath $File
+    
+    try {
+        Write-Host "  [+] Downloading $File..." -ForegroundColor Gray
+        Invoke-WebRequest -Uri $FileUrl -OutFile $Destination -UseBasicParsing -ErrorAction Stop
+    } catch {
+        Write-Host "  [!] Download failed for $File : $_" -ForegroundColor Red
+        Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+        return
+    }
+}
+
+Write-Host "[!] Merging split zip archives..." -ForegroundColor Cyan
+$MergedZipPath = Join-Path -Path $TempDir -ChildPath "AAP2026_Merged.zip"
+
+try {
+    $OutputStream = [System.IO.File]::Create($MergedZipPath)
+    foreach ($FileName in $AllFiles) {
+        $FilePath = Join-Path -Path $TempDir -ChildPath $FileName
+        Write-Host "  [+] Combining $FileName..." -ForegroundColor Gray
+        $InputStream = [System.IO.File]::OpenRead($FilePath)
+        $InputStream.CopyTo($OutputStream)
+        $InputStream.Close()
+    }
+    $OutputStream.Close()
+    Write-Host "  [OK] Successfully merged into AAP2026_Merged.zip" -ForegroundColor Green
+} catch {
+    Write-Host "  [!] Merging zip files failed: $_" -ForegroundColor Red
+    if ($OutputStream) { $OutputStream.Close() }
+    Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+    return
+}
+
+Write-Host "[!] Extracting Zip package..." -ForegroundColor Cyan
+
+try {
+    Expand-Archive -Path $MergedZipPath -DestinationPath $ExtractDir -Force -ErrorAction Stop
+    Write-Host "  [OK] Extraction completed successfully!" -ForegroundColor Green
+} catch {
+    Write-Host "  [!] Expand-Archive failed, falling back to native tar.exe..." -ForegroundColor Yellow
+    tar.exe -xf $MergedZipPath -C $ExtractDir
+}
+
+Write-Host "[!] Locating installer and launching silent installation..." -ForegroundColor Cyan
+
+$InstallerPath = Get-ChildItem -Path $ExtractDir -Filter $TargetExeName -Recurse | Select-Object -First 1
+
+if ($InstallerPath) {
+    try {
+        Write-Host "  [+] Running $($InstallerPath.Name) /S..." -ForegroundColor Gray
+        $Process = Start-Process -FilePath $InstallerPath.FullName -ArgumentList "/S" -Wait -PassThru -NoNewWindow
+        
+        if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {
+            Write-Host "  [OK] Adobe Acrobat Pro 2026 installed successfully!" -ForegroundColor Green
+        } else {
+            Write-Host "  [!] Installer completed with Exit Code: $($Process.ExitCode)" -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "  [!] Installation execution failed: $_" -ForegroundColor Red
+    }
+} else {
+    Write-Host "  [!] Could not find $TargetExeName in extracted directory!" -ForegroundColor Red
+}
+
+Write-Host "[!] Cleaning up temporary files..." -ForegroundColor Cyan
+Remove-Item -Path $TempDir -Recurse -Force -ErrorAction SilentlyContinue
+Write-Host "[OK] Cleanup completed. Script finished." -ForegroundColor Green
 
 # ------------------------------------------------------------------------------
 # 3. PotPlayer
