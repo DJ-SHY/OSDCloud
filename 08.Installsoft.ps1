@@ -146,7 +146,7 @@ $InstallerPath = Get-ChildItem -Path $ExtractDir -Filter $TargetExeName -Recurse
 if ($InstallerPath) {
     try {
         Write-Host "  [+] Running $($InstallerPath.Name) /S..." -ForegroundColor Gray
-        $Process = Start-Process -FilePath $InstallerPath.FullName -ArgumentList "/s" -Wait -PassThru -NoNewWindow
+        $Process = Start-Process -FilePath $InstallerPath.FullName -ArgumentList "/S" -Wait -PassThru -NoNewWindow
         
         if ($Process.ExitCode -eq 0 -or $Process.ExitCode -eq 3010) {
             Write-Host "  [OK] Adobe Acrobat Pro 2026 installed successfully!" -ForegroundColor Green
